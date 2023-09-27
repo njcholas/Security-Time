@@ -9,6 +9,9 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
+
+  
+
 name: "CodeQL"
 
 on:
@@ -21,6 +24,18 @@ on:
     - cron: '31 15 * * 0'
 
 jobs:
+  ubuntu-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - name: Build project
+      uses: nicledomaS/cmake_build_action@v1.4
+      with:
+        submodule_update: ON
+        run_tests: ON
+        unit_test_build: -Dtest=ON
+
   analyze:
     name: Analyze
     # Runner size impacts CodeQL analysis time. To learn more, please see:
@@ -72,15 +87,15 @@ jobs:
     #   If the Autobuild fails above, remove it and uncomment the following three lines.
     #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
 
-    - if: matrix.language == 'cpp' || matrix.language == 'csharp'
-      name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+    #- if: matrix.language == 'cpp' || matrix.language == 'csharp'
+    #  name: Autobuild
+    #  uses: github/codeql-action/autobuild@v2
 
-    - if: matrix.language == 'java'
-      name: Build Java
-      run: |
-        make bootstrap
-        make release
+    #- if: matrix.language == 'java'
+    #  name: Build Java
+    #  run: |
+    #    make bootstrap
+    #    make release
 
     #- run: |
     #     echo "Run, Build Application using script"
