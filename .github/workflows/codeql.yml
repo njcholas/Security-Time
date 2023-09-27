@@ -31,7 +31,7 @@ jobs:
     steps:
 
     - name: Setup CodeQL
-      uses: github/codeql-action/setup-cpp@v3
+      uses: github/codeql-action/setup-cpp@v2
 
     - name: Install g++
       run: sudo apt-get install g++
