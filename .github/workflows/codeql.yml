@@ -107,9 +107,9 @@ jobs:
     #     ./location_of_script_within_repo/buildscript.sh
 
     - name: Setup CPP and CodeQL
-      uses: github/codeql-action/setup-cpp@v2
+      uses: github/codeql-action/setup-cpp@v1
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v1
       with:
         category: "/language:${{matrix.language}}"
