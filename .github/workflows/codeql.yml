@@ -29,11 +29,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
 
     - name: Setup CodeQL
-      uses: github/codeql-action/setup-cpp@v2
+      uses: github/codeql-action/setup-cpp@v3
 
     - name: Install g++
       run: sudo apt-get install g++
