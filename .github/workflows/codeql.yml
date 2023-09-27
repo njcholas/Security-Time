@@ -23,19 +23,24 @@ on:
   schedule:
     - cron: '31 15 * * 0'
 
-jobs:
-  ubuntu-build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2.0.0
-    - name: Build project
-      uses: nicledomaS/cmake_build_action@v1.4
-      with:
-        submodule_update: ON
-        run_tests: ON
-        unit_test_build: -Dtest=ON
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install g++
+      run: sudo apt-get install g++
+
+    - name: Build C++ Code
+      run: g++ -o test insecurecode.c++
+
+    - name: Run Program
+      run: ./test
+      
   analyze:
     name: Analyze
     # Runner size impacts CodeQL analysis time. To learn more, please see:
