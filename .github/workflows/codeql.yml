@@ -10,20 +10,34 @@ jobs:
     name: Analyze Code
     runs-on: ubuntu-latest
 
+  test:
+    name: Analyze
+    runs-on: ${{ (matrix.language == 'cpp' && 'ubuntu-latest') }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+        
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
-
-    - name: Build C++ Code
-      run: |
-        # Compile your C++ code here
-        g++ -o test insecurecode.c++
-
-    - name: Analyze Code with CodeQL
-      uses: github/codeql-action/analyze@v2
       with:
-        # Specify the database path for your C++ code
-        database: ./codeql-database
+        languages: ${{ matrix.language }}
+        
+
+    - name: Setup CPP and CodeQL
+      uses: github/codeql-action/setup-cpp@v1
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+      with:
+        category: "/language:${{matrix.language}}"
