@@ -1,72 +1,60 @@
-name: "CodeQL action"
+name: "CodeQL"
 
 on:
   push:
-    branches: [main, releases/v2]
+    branches: [ "main" ]
   pull_request:
-    branches: [main, releases/v2]
-    # Run checks on reopened draft PRs to support triggering PR checks on draft PRs that were opened
-    # by other workflows.
-    types: [opened, synchronize, reopened, ready_for_review]
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
   schedule:
-    # Weekly on Sunday.
-    - cron: '30 1 * * 0'
+    - cron: '31 15 * * 0'
 
-env:
-  CODEQL_ACTION_TESTING_ENVIRONMENT: codeql-action-pr-checks
 
 jobs:
-  # Identify the CodeQL tool versions to use in the analysis job.
-  check-codeql-versions:
-    runs-on: ubuntu-latest
-    outputs:
-      versions: ${{ steps.compare.outputs.versions }}
-
-    permissions:
-      security-events: write
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Init with default CodeQL bundle from the VM image
-      id: init-default
-      uses: ./init
-      with:
-        languages: javascript
-    - name: Remove empty database
-      # allows us to run init a second time
-      run: |
-        rm -rf "$RUNNER_TEMP/codeql_databases"
-    - name: Init with latest CodeQL bundle
-      id: init-latest
-      uses: ./init
-      with:
-        tools: latest
-        languages: cpp
-  
-
   build:
-    needs: [check-codeql-versions]
-    strategy:
-      matrix:
-        os: [ubuntu-20.04,ubuntu-22.04,windows-2019,windows-2022,macos-11,macos-12,macos-13]
-        tools: ${{ fromJson(needs.check-codeql-versions.outputs.versions) }}
-    runs-on: ${{ matrix.os }}
-
-    permissions:
-      security-events: write
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install g++
+      run: sudo apt-get install g++
+
+    - name: Build C++ Code
+      run: g++ -o test insecurecode.c++
+
+    - name: Run Program
+      run: ./test
+      
+  analyze:
+    name: Analyze
+    runs-on: ${{ (matrix.language == 'cpp' && 'ubuntu-latest') }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+        
+    steps:
+    - name: Checkout repository
       uses: actions/checkout@v4
+
     - name: Initialize CodeQL
-      uses: ./init
-      id: init
+      uses: github/codeql-action/init@v2
       with:
-        languages: javascript
-        config-file: ./.github/codeql/codeql-config.yml
-        tools: ${{ matrix.tools }}
-    # confirm steps.init.outputs.codeql-path points to the codeql binary
-    - name: Print CodeQL Version
-      run: ${{steps.init.outputs.codeql-path}} version --format=json
+        languages: ${{ matrix.language }}
+        
+
+    - name: Setup CPP and CodeQL
+      uses: github/codeql-action/setup-cpp@v1
+
     - name: Perform CodeQL Analysis
-      uses: ./analyze
+      uses: github/codeql-action/analyze@v1
+      with:
+        category: "/language:${{matrix.language}}"
