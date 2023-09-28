@@ -24,7 +24,7 @@ jobs:
     - name: Build C++ Code
       run: |
         # Compile your C++ code here
-        g++ -o my_program main.cpp
+        g++ -o insecurecode insecurecode.c++
 
     - name: Analyze Code with CodeQL
       uses: github/codeql-action/analyze@v2
