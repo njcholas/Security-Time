@@ -52,7 +52,7 @@ jobs:
         
 
     - name: Setup CPP and CodeQL
-      uses: github/codeql-action/setup-cpp@v4
+      uses: github/codeql-action/setup-cpp@v3
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
