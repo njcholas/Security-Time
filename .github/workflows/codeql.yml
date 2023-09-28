@@ -1,60 +1,29 @@
-name: "CodeQL"
+name: CodeQL Analysis
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
-  schedule:
-    - cron: '31 15 * * 0'
-
+    branches:
+      - main  # Specify the branch you want to trigger the workflow
 
 jobs:
-  build:
+  analyze:
+    name: Analyze Code
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Install g++
-      run: sudo apt-get install g++
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
 
     - name: Build C++ Code
-      run: g++ -o test insecurecode.c++
+      run: |
+        # Compile your C++ code here
+        g++ -o test insecurecode.c++
 
-    - name: Run Program
-      run: ./test
-      
-  analyze:
-    name: Analyze
-    runs-on: ${{ (matrix.language == 'cpp' && 'ubuntu-latest') }}
-    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'cpp' ]
-        
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: ${{ matrix.language }}
-        
-
-    - name: Setup CPP and CodeQL
-      uses: github/codeql-action/setup-cpp@v2
-
-    - name: Perform CodeQL Analysis
+    - name: Analyze Code with CodeQL
       uses: github/codeql-action/analyze@v1
       with:
-        category: "/language:${{matrix.language}}"
+        # Specify the database path for your C++ code
+        database: ./codeql-database
