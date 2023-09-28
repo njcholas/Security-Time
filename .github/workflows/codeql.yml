@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
 
     - name: Build C++ Code
       run: |
@@ -23,7 +23,7 @@ jobs:
         g++ -o test insecurecode.c++
 
     - name: Analyze Code with CodeQL
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
       with:
         # Specify the database path for your C++ code
         database: ./codeql-database
