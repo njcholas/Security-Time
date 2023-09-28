@@ -1,101 +1,72 @@
-name: "CodeQL"
+name: "CodeQL action"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, releases/v2]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: [main, releases/v2]
+    # Run checks on reopened draft PRs to support triggering PR checks on draft PRs that were opened
+    # by other workflows.
+    types: [opened, synchronize, reopened, ready_for_review]
   schedule:
-    - cron: '31 15 * * 0'
+    # Weekly on Sunday.
+    - cron: '30 1 * * 0'
 
+env:
+  CODEQL_ACTION_TESTING_ENVIRONMENT: codeql-action-pr-checks
 
 jobs:
-  build:
+  # Identify the CodeQL tool versions to use in the analysis job.
+  check-codeql-versions:
     runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.compare.outputs.versions }}
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Install g++
-      run: sudo apt-get install g++
-
-    - name: Build C++ Code
-      run: g++ -o test insecurecode.c++
-
-    - name: Run Program
-      run: ./test
-      
-  analyze:
-    name: Analyze
-    # Runner size impacts CodeQL analysis time. To learn more, please see:
-    #   - https://gh.io/recommended-hardware-resources-for-running-codeql
-    #   - https://gh.io/supported-runners-and-hardware-resources
-    #   - https://gh.io/using-larger-runners
-    # Consider using larger runners for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'cpp' && 'ubuntu-latest') }}
-    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
-      actions: read
-      contents: read
       security-events: write
 
+    steps:
+    - uses: actions/checkout@v4
+    - name: Init with default CodeQL bundle from the VM image
+      id: init-default
+      uses: ./init
+      with:
+        languages: javascript
+    - name: Remove empty database
+      # allows us to run init a second time
+      run: |
+        rm -rf "$RUNNER_TEMP/codeql_databases"
+    - name: Init with latest CodeQL bundle
+      id: init-latest
+      uses: ./init
+      with:
+        tools: latest
+        languages: cpp
+  
+
+  build:
+    needs: [check-codeql-versions]
     strategy:
-      fail-fast: false
       matrix:
-        language: [ 'cpp' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift' ]
-        # Use only 'java' to analyze code written in Java, Kotlin or both
-        # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
-        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+        os: [ubuntu-20.04,ubuntu-22.04,windows-2019,windows-2022,macos-11,macos-12,macos-13]
+        tools: ${{ fromJson(needs.check-codeql-versions.outputs.versions) }}
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      security-events: write
 
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
-
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: ./init
+      id: init
       with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-
-        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
-
-
-    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    #- name: Autobuild
-    #  uses: github/codeql-action/autobuild@v2
-
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-
-    #   If the Autobuild fails above, remove it and uncomment the following three lines.
-    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
-
-    #- if: matrix.language == 'cpp' || matrix.language == 'csharp'
-    #  name: Autobuild
-    #  uses: github/codeql-action/autobuild@v2
-
-    #- if: matrix.language == 'java'
-    #  name: Build Java
-    #  run: |
-    #    make bootstrap
-    #    make release
-
-    #- run: |
-    #     echo "Run, Build Application using script"
-    #     ./location_of_script_within_repo/buildscript.sh
-
-    - name: Setup CPP and CodeQL
-      uses: github/codeql-action/setup-cpp@v1
-
+        languages: javascript
+        config-file: ./.github/codeql/codeql-config.yml
+        tools: ${{ matrix.tools }}
+    # confirm steps.init.outputs.codeql-path points to the codeql binary
+    - name: Print CodeQL Version
+      run: ${{steps.init.outputs.codeql-path}} version --format=json
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
-      with:
-        category: "/language:${{matrix.language}}"
+      uses: ./analyze
