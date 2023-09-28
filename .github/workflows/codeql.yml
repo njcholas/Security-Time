@@ -23,7 +23,6 @@ jobs:
 
     - name: Build C++ Code
       run: |
-        # Compile your C++ code here
         g++ -o insecurecode insecurecode.c++
 
     - name: Analyze Code with CodeQL
