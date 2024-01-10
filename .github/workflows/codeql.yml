@@ -1,31 +1,16 @@
-name: CodeQL Analysis!!
+name: 'Check for Vulnerabilities'
 
 on:
-  push:
+  pull_request:
     branches:
-      - main 
+      'main'
 
 jobs:
-  analyze:
-    name: Analyze Code
+  main:
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-
-    - name: Build C++ Code
-      run: |
-        g++ -o insecurecode insecurecode.c++
-
-    - name: Analyze Code with CodeQL
-      uses: github/codeql-action/analyze@v2
-      with:
-        database: ./codeql-database
+      # X.X.X - Latest version available at: https://github.com/kunalnagarco/action-cve/releases
+      - uses: kunalnagarco/action-cve@v1.8.1
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}
+          slack_webhook: ${{ secrets.DEPENDABOT_SLACK_SECRET }}
