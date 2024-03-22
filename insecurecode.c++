@@ -11,7 +11,7 @@ int main() {
     // Vulnerabilidade: Não há verificação de limite
     strcpy(buffer, userInput);
 
-    std::cout << "Buffer: " << buffer << std::endl;
+    std::cout << "Buf fer: " << buffer << std::endl;
 
     return 0;
 }
