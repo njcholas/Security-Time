@@ -9,7 +9,7 @@ int main() {
     std::cin >> userInput;
 
     // Vulnerabilidade: Não há verificação de limite
-    strcpy(buffer, userInput);
+    strcpy(buffer, userInput); 
 
     std::cout << "Buffer: " << buffer << std::endl;
 
