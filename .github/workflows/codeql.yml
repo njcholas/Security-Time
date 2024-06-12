@@ -26,10 +26,9 @@ jobs:
           languages: ${{ matrix.language }}
       
       - name: Download G++
-        uses:
+        shell: bash
         run: |
           apt-get install g++
-        shell: bash
 
       - name: Build Code
         run: ./build.sh
