@@ -24,6 +24,12 @@ jobs:
         uses: github/codeql-action/init@v1
         with:
           languages: ${{ matrix.language }}
+      
+      - name: Download G++
+        uses:
+        run: |
+          apt-get install g++
+        shell: bash
 
       - name: Build Code
         run: ./build.sh
