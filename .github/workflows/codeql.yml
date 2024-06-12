@@ -28,7 +28,7 @@ jobs:
       - name: Download G++
         shell: bash
         run: |
-          apt-get install g++
+          sudo apt-get install g++
 
       - name: Build Code
         run: ./build.sh
